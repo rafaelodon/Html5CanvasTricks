@@ -1,0 +1,126 @@
+<html>
+	<head>
+		<script src="jquery-1.6.2.min.js"></script>
+		<script src="DraggableCircle.js"></script>
+	</head>
+	<body>
+		<center>
+			<div id="text" style="width: 800px;">0,0</div>
+			<canvas id="myCanvas" width="800" height="400" style="border: 1px solid black; margin-top: 40px">
+				<p>Your browser doesn't support canvas.</p>
+			</canvas>
+		</center>
+	</body>
+	<script type="text/javascript">
+		
+		$(document).ready(function() {
+		
+			var canvas = document.getElementById('myCanvas');
+
+			var maxLeft = 800;
+			var maxTop = 400;
+
+			var circle = new DraggableCircle(maxLeft/2, maxTop/2);
+
+			var goal = false;
+			var goalX = 0;
+			var goalY = 0;
+			var goalXadd = 0;
+			var goalYadd = 0;
+			var goalTurns = 0;
+
+			$('#myCanvas').mousemove(function (e){
+
+				var x = e.pageX - this.offsetLeft;
+				var y = e.pageY - this.offsetTop;
+				$('#text').html(""+x+","+y);
+
+				circle.mouseMove(x,y);
+
+				if(circle.isOver){
+					$(this).css('cursor','pointer');
+				}else{
+					$(this).css('cursor','auto');
+				}
+			});
+
+			$('#myCanvas').mousedown(function (e){
+				var x = e.pageX - this.offsetLeft;
+				var y = e.pageY - this.offsetTop;
+
+				if(circle.isOver){
+					circle.startDrag();
+					circle.setPosition(x,y);
+					goal = false;
+				}else{
+					goal = true;
+					goalX = x;
+					goalY = y;
+					var dX = x-circle.x;
+					var dY = y-circle.y;
+					var dist = Math.sqrt(dX*dX + dY*dY);
+					goalTurns = dist/15;
+					
+					goalXadd = dX/goalTurns;
+					goalYadd = dY/goalTurns;
+				}
+			});
+
+			$('#myCanvas').mouseup(function (e){
+				if(circle.isDragging){
+					circle.stopDrag();
+				}
+			});
+
+			function drawCredits(context){
+
+				context.fillStyle = "#000000";
+				context.font = "9px sans-serif";
+				context.fillText("odon.rafael@gmail.com", 2, 8);
+			}
+
+			
+
+			function resetShadow(context){
+				context.shadowOffsetX = 0;
+				context.shadowOffsetY = 0;
+				context.shadowBlur = 0;
+			}
+
+			function drawBackground(context){
+				context.fillStyle= "#AADDFF";
+				context.fillRect(0,0,maxLeft,maxTop);
+			}
+
+			function draw(canvas){
+
+				if(canvas.getContext) {
+
+					var context = canvas.getContext('2d');
+
+					drawBackground(context);
+					circle.draw(context);
+					drawCredits(context);
+				}
+			}
+
+			function refresh(){
+				if(goal){
+					circle.y += goalYadd;
+					circle.x += goalXadd;
+					goalTurns--;
+				}
+				if(goalTurns <= 0){
+					goal = false;
+				}
+
+				// believe it or not, this s weird trick above is used to clear the canvas fills settings
+				canvas.width = canvas.width;
+
+				draw(canvas);
+			}
+
+			var timer = setInterval(function (){ refresh();	},33);
+		});
+	</script>
+</html>
