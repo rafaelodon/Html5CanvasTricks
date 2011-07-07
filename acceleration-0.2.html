@@ -1,99 +1,113 @@
 <html>
 	<head>
+		<script type="text/javascript" src="jquery-1.6.2.min.js"></script>
 	</head>
 	<body>
 		<canvas id="myCanvas" width="1200" height="400" style="border: 1px solid black">
 		</canvas>
 		<div id="output"></div>
-		there is a bug on the final x,y... if you start at 0 and goes until 500, it moves until x=500. Nice.
-		but if you start at 50 and goest until 500, it moves until x=500-50, x=450.
-		someone need to make a deep of analysis of this tons of variables
-		good luck!
+		need to find a way to handle subsequent clicks on the canvas..
 		<script type="text/javascript">
-			var canvas = document.getElementById("myCanvas");
-			var context = canvas.getContext("2d");
 
-			var x0=0;
-			var y0=50;
+			$(document).ready(function (){
 
-			var x;
-			var y;
+				var canvas = document.getElementById("myCanvas");
+				var context = canvas.getContext("2d");
 
-			var xl=800;
-			var yl=250;
+				var x0=500;
+				var y0=250;
 
-			var xl2=parseInt(xl/2);
-			var yl2=parseInt(yl/2);
+				var x=x0;
+				var y=y0;
 
-			var t=0;	
-			var tf=31;
-			var tf2=parseInt(tf/2);
+				var xl;
+				var yl;
 
-			var v0x=0;
-			var v0y=0;
-			var dx = xl2-x0;
-			var dy = yl2-y0;
+				var xl2;
+				var yl2;
 
-			var vfx=(2*dx-v0x*tf2)/tf2;
-			var vfy=(2*dy-v0y*tf2)/tf2;
+				var t=0;	
+				var tf=31;
+				var tf2=parseInt(tf/2);
+				var v0x=0;
+				var v0y=0;
+				var dx = xl2-x0;
+				var dy = yl2-y0;
+				var vfx, vfy, ax, ay;
+				var vx=0;
+				var vy=0;
 
-			var ax=(vfx-v0x)/(tf2);
-			var ay=(vfy-v0y)/(tf2);
+				var move=false;
 
-			var vx=0;
-			var vy=0;
+				function calculateMovement(){
+					xl2=parseInt(x0+(xl-x0)/2);
+					yl2=parseInt(y0+(yl-y0)/2);
+					dx = xl2-x0;
+					dy = yl2-y0;
 
-			var move=true;
+					vfx=(2*dx-v0x*tf2)/tf2;
+					vfy=(2*dy-v0y*tf2)/tf2;
 
-			function refresh(){
-
-				context.clearRect(0,0,1200,400);
-
-				if(move){
-					if(t<=tf2){
-
-						if(vx >= 0){
-							x = x0 + v0x*t + (ax*t*t)/2;
-						}
-						if(vy >= 0){
-							y = y0 + v0y*t + (ay*t*t)/2;
-						}
-
-						vx = v0x + ax*t;
-						vy = v0y + ay*t;
-
-						if(vx <= 0 && vy <= 0){
-							move=false;
-						}
-					}else{
-						t = 0;
-						x0 = x;
-						y0 = y;
-						v0x = vx;
-						v0y = vy;
-						ax=(0-v0x)/(tf2);
-						ay=(0-v0y)/(tf2);
-					}
-					t++;
+					ax=(vfx-v0x)/(tf2);
+					ay=(vfy-v0y)/(tf2);
 				}
 
-				var text = document.getElementById("output");
-				text.innerHTML = "x,y="+x+","+y+"<br/>t="+t;
-								
-				context.fillStyle = "#AA0000";
-				context.beginPath();
-				context.arc(x,y,20,0,Math.PI*180,false);
-				context.closePath();
-				context.fill();
+				$('#myCanvas').mousedown(function (e){
+					mx = e.pageX - this.offsetLeft;
+					my = e.pageY - this.offsetTop;
 
-				context.restore();
+					xl = mx;
+					yl = my;
+					calculateMovement();
+					move = true;
+				});
 
-				context.width = context.width;
-			}
+				function refresh(){
 
-			var t = setInterval(function (){
-					refresh();
-					},33);
+					context.clearRect(0,0,1200,400);
+
+					if(move){
+						if(t<=tf2){
+
+							x = x0 + v0x*t + (ax*t*t)/2;
+							y = y0 + v0y*t + (ay*t*t)/2;
+
+							vx = v0x + ax*t;
+							vy = v0y + ay*t;
+
+							if(vx == 0 && vy == 0){
+								move=false;
+							}
+						}else{
+							t = 0;
+							x0 = x;
+							y0 = y;
+							v0x = vx;
+							v0y = vy;
+							ax=(0-v0x)/(tf2);
+							ay=(0-v0y)/(tf2);
+						}
+						t++;
+					}
+
+					var text = document.getElementById("output");
+					text.innerHTML = "x,y="+x+","+y+"<br/>t="+t;
+									
+					context.fillStyle = "#AA0000";
+					context.beginPath();
+					context.arc(x,y,20,0,Math.PI*180,false);
+					context.closePath();
+					context.fill();
+
+					context.restore();
+
+					context.width = context.width;
+				}
+
+				var t = setInterval(function (){
+						refresh();
+						},33);
+			});
 		</script>
 	</body>
 </html>
