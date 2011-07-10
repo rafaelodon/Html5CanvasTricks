@@ -1,120 +1,138 @@
 <html>
 	<head>
 		<script type="text/javascript" src="jquery-1.6.2.min.js"></script>
+		<script type="text/javascript" src="DraggableCircle.js"></script>
 	</head>
 	<body>
 		<canvas id="myCanvas" width="1200" height="400" style="border: 1px solid black">
 		</canvas>
 		<div id="output"></div>
-		need to find a way to handle subsequent clicks on the canvas..
 		<script type="text/javascript">
 
 			$(document).ready(function (){
 
 				var canvas = document.getElementById("myCanvas");
 				var context = canvas.getContext("2d");
+				var tween = new SoftMotionTween();
 
-				// initial position 
-				var x0, y0;
+				function SoftMotionTween() {
 
-				// current position
-				var x, y;
+					this.isMoving = false;
 
-				// final position
-				var xl, yl;
+					// current position
+					this.x;
+					this.y;
 
-				// current time (in frames)
-				var t=0;
+					// initial position 
+					var x0, y0;
 
-				// final time (in frames)
-				var tf=33;
+					// final position
+					var xl, yl;
 
-				// partial final time
-				var tf2=parseInt(tf/2);
+					// current time (in frames)
+					var t=0;
 
-				// initial velocity
-				var v0x, v0y;
+					// final time (in frames)
+					var tf=33;
 
-				// current velocity
-				var vx, vy;
+					// partial final time
+					var tf2=parseInt(tf/2);
 
-				// acceleration
-				var ax, ay;
+					// initial velocity
+					var v0x, v0y;
 
-				var isMoving = false;
+					// current velocity
+					var vx, vy;
 
-				function runMovement(initialX, initialY, finalX, finalY){
+					// acceleration
+					var ax, ay;
 
-					// copy the initial position from the parameters
-					x0 = initialX;
-					y0 = initialY;
+					this.start = function (initialX, initialY, finalX, finalY){
 
-					// copy the final position from the parameters values
-					xl = finalX;
-					yl = finalY;
+						// copy the initial position from the parameters
+						x0 = initialX;
+						y0 = initialY;
 
-					// the initial velocity is always zero
-					v0x = 0;
-					v0y = 0;
+						// copy the final position from the parameters values
+						xl = finalX;
+						yl = finalY;
 
-					// the current velocity is the initial velocity
-					vx = v0x;
-					vy = v0y;
+						// the initial velocity is always zero
+						v0x = 0;
+						v0y = 0;
 
-					// the movement starts in time zero
-					t = 0;
+						// the current velocity is the initial velocity
+						vx = v0x;
+						vy = v0y;
 
-					// calculate the acceleration needed to reach the
-					// final position in the specified time
-					var xl2 = parseInt(x0+(xl-x0)/2);
-					var yl2 = parseInt(y0+(yl-y0)/2);
-					var dx = xl2-x0;
-					var dy = yl2-y0;
-					var vfx = (2*dx-v0x*tf2)/tf2;
-					var vfy = (2*dy-v0y*tf2)/tf2;
-					ax = (vfx-v0x)/(tf2);
-					ay = (vfy-v0y)/(tf2);
+						// the movement starts in time zero
+						t = 0;
 
-					// and the magic starts...
-					isMoving = true;
+						// calculate the acceleration needed to reach the
+						// final position in the specified time
+						var xl2 = parseInt(x0+(xl-x0)/2);
+						var yl2 = parseInt(y0+(yl-y0)/2);
+						var dx = xl2-x0;
+						var dy = yl2-y0;
+						var vfx = (2*dx-v0x*tf2)/tf2;
+						var vfy = (2*dy-v0y*tf2)/tf2;
+						ax = (vfx-v0x)/(tf2);
+						ay = (vfy-v0y)/(tf2);
+
+						// and the magic starts...
+						this.isMoving = true;
+					}
+
+					this.nextFrame = function (){
+
+						if(this.isMoving){
+							t++;
+							// the first part of movement is positively accelerated
+							if(t<=tf2){
+								// calculate current position according to the "famous" equation	
+								this.x = x0 + v0x*t + (ax*t*t)/2;
+								this.y = y0 + v0y*t + (ay*t*t)/2;
+
+								// calculate velocity at the current time
+								vx = v0x + ax*t;
+								vy = v0y + ay*t;
+
+								// check if the movement is over
+								if(t==tf2 && vx == 0 && vy == 0){
+									this.isMoving=false;
+								}
+							}else{
+								// the second part of movement is negatively accelerated
+								t = 0;
+								x0 = x;
+								y0 = y;
+								v0x = vx;
+								v0y = vy;
+								ax=(0-v0x)/(tf2);
+								ay=(0-v0y)/(tf2);
+							}
+						}
+					}
 				}
 
 				$('#myCanvas').mousedown(function (e){
 					mouseX = e.pageX - this.offsetLeft;
 					mouseY = e.pageY - this.offsetTop;
 
-					runMovement(x,y,mouseX,mouseY);
+					tween.start(x,y,mouseX,mouseY);
 				});
 
 				function refresh(){
 
 					context.clearRect(0,0,1200,400);
-					if(isMoving){
-						t++;
-						if(t<=tf2){
-								
-							x = x0 + v0x*t + (ax*t*t)/2;
-							y = y0 + v0y*t + (ay*t*t)/2;
-
-							vx = v0x + ax*t;
-							vy = v0y + ay*t;
-
-							if(t==tf2 && vx == 0 && vy == 0){
-								isMoving=false;
-							}
-						}else{
-							t = 0;
-							x0 = x;
-							y0 = y;
-							v0x = vx;
-							v0y = vy;
-							ax=(0-v0x)/(tf2);
-							ay=(0-v0y)/(tf2);
-						}
-					}
-
+					
+					if(tween.isMoving){
+						tween.nextFrame();
+						x = tween.x;
+						y = tween.y;
+					}	
+					
 					var text = document.getElementById("output");
-					text.innerHTML = "x,y="+parseInt(x)+","+parseInt(y)+"<br/>t="+t+"<br/>vx="+vx+"<br/>xy="+vy;
 									
 					context.fillStyle = "#AA0000";
 					context.beginPath();
