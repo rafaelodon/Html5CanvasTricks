@@ -20,7 +20,7 @@
 		this.color = COLOR_NORMAL;
 		this.isDragging = false;
 		this.isOver = false;
-		this.radius = 50;
+		this.radius = 30;
 
 		this.draw = function(context){
 			
@@ -33,12 +33,12 @@
 			context.fillStyle = this.color;
 			if(this.isDragging){
 				context.shadowColor = "#666666";
-				context.shadowBlur = 20;
+				context.shadowBlur = 10;
 				context.shadowOffsetX = -5;
 				context.shadowOffsetY = 5;
 			}
 			context.beginPath();
-			context.arc(this.x, this.y, this.radius-1, 0, Math.PI*2, true);
+			context.arc(this.x, this.y, this.radius-1, 0, Math.PI*2, false);
 			context.closePath();
 			context.stroke();
 			context.fill();
@@ -49,10 +49,8 @@
 		this.mouseMove = function(x,y){
 		
 			this.isOver = this.isPointInside(x,y);				
-			if(this.isOver){
-				if(this.isDragging){
-					this.setPosition(x,y);
-				}
+			if(this.isDragging){
+				this.setPosition(x,y);
 			}
 		}
 
