@@ -54,10 +54,9 @@
 						circle.setPosition(mouseX,mouseY);
 						tween.stop();
 					}else{
+						clickPoint.mousedown(mouseX, mouseY);
 						tween.start(circle.x,circle.y,mouseX,mouseY,30);
 					}
-					
-					clickPoint.mousedown(mouseX, mouseY);
 				});
 
 				$('#myCanvas').mouseup(function (e){
