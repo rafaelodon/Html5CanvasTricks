@@ -4,6 +4,7 @@
 		<script type="text/javascript" src="jquery-1.6.2.min.js"></script>
 		<script type="text/javascript" src="DraggableCircle.js"></script>
 		<script type="text/javascript" src="SoftMotionTween.js"></script>
+		<script tupe="text/javascript" src="ClickPoint.js"></script>
 		<style type="text/css">
 			body{
 				background: #DDD;
@@ -28,6 +29,7 @@
 
 				var circle = new DraggableCircle(maxLeft/2, maxTop/2);
 				var tween = new SoftMotionTween();
+				var clickPoint = new ClickPoint("#FAA",30,30);
 
 				$('#myCanvas').mousemove(function (e){
 					mouseX = e.pageX - this.offsetLeft;
@@ -54,6 +56,8 @@
 					}else{
 						tween.start(circle.x,circle.y,mouseX,mouseY,30);
 					}
+					
+					clickPoint.mousedown(mouseX, mouseY);
 				});
 
 				$('#myCanvas').mouseup(function (e){
@@ -79,6 +83,7 @@
 						circle.y = tween.y;
 					}	
 
+					clickPoint.draw(context);
 					circle.draw(context);	
 					drawCredits(context);
 
